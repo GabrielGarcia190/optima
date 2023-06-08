@@ -1,68 +1,105 @@
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Text,
   View,
   StyleSheet,
-  ScrollView,
-  TextInput,
   Button,
-  TouchableOpacityBase,
   TouchableOpacity,
+  SafeAreaView,
+  Text,
+  TextInput,
 } from "react-native";
 import {
   collection,
-  addDoc,
-  onSnapshot,
   query,
-  orderBy,
+  where,
+  getDocs,
+  DocumentData,
+  setDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { database } from "../../firebase/config/firebaseConfig";
 import { Header } from "../../components/Header";
-import { AppButton } from "../../components/AppButton";
-import { useRouter } from "expo-router";
 import {
   CalendarCheck,
   CalendarPlus,
-  Plus,
   Scroll,
+  Trash,
   User,
 } from "phosphor-react-native";
-import { database } from "../../firebase/config/firebaseConfig";
-import uuid from 'react-native-uuid';
 
-
-export default function AddScreen() {
+export default function EditScreen() {
   const router = useRouter();
-  const [cliente, setCliente] = useState("");
-  const [createdAt, setCreatedAt] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [descricao, setDescricao] = useState("");
+  const [cliente, setCliente] = useState<string>();
+  const [createdAt, setCreatedAt] = useState<string>();
+  const [deliveryDate, setDeliveryDate] = useState<string>();
+  const [descricao, setDescricao] = useState<string>();
+  const [docId, setDocId] = useState<string>();
+  const params = useLocalSearchParams();
+  const id = params.id;
+  const ordem: DocumentData[] = [];
+  const ordemId: Array<string> = [];
 
-  useEffect(() => {
-    setCreatedAt(new Date().toLocaleDateString());
-  }, []);
-
-  async function addDataToFirebase() {
+  async function buscarDados() {
+    const q = query(
+      collection(database, "ordem_Serviço"),
+      where("id", "==", id)
+    );
     try {
-      addDoc(collection(database, "ordem_Serviço"), {
-        id: uuid.v4(),
+      const querySnapshot = await getDocs(q);
+      const docs: DocumentData[] = [];
+      querySnapshot.forEach((doc) => {
+        ordem.push(doc.data());
+        ordemId.push(doc.id);
+      });
+      setDocId(ordemId[0]);
+      setCliente(ordem.map((item) => item.cliente)[0]);
+      setCreatedAt(ordem.map((item) => item.createdAt)[0]);
+      setDeliveryDate(ordem.map((item) => item.deliveryDate)[0]);
+      setDescricao(ordem.map((item) => item.descricao)[0]);
+    } catch (error) {
+      alert("Erro ao buscar dados:" + error);
+    }
+  }
+
+  async function editarDados() {
+    const dbRef = doc(database, "ordem_Serviço", String(docId));
+    try {
+      await updateDoc(dbRef, {
         cliente: cliente,
         createdAt: createdAt,
         deliveryDate: deliveryDate,
         descricao: descricao,
       });
-      alert("Dados adicionados com sucesso");
-      setCliente("");
-      setDeliveryDate("");
-      setDescricao("");
+      buscarDados();
     } catch (error) {
-      console.log("Não foi possível adicionar os dados" + error);
+      alert("Erro ao editar dados:" + error);
     }
   }
+
+  async function deletarDados() {
+    const dbRef = doc(database, "ordem_Serviço", String(docId));
+    try {
+      await deleteDoc(dbRef);
+      alert("Dados deletados com sucesso!");
+      router.push("/home");
+    }
+    catch (error) {
+      alert("Erro ao deletar dados:" + error);
+    }
+  }
+
+
+  useEffect(() => {
+    buscarDados();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <Header goBack={true} />
-      <View style={styles.addView}>
+      <View style={styles.editView}>
         <View style={{ width: "100%", alignItems: "center", marginTop: 10 }}>
           <Text
             style={{
@@ -72,7 +109,7 @@ export default function AddScreen() {
               marginTop: 20,
             }}
           >
-            Cadastrar Ordem
+            Editar Serviço
           </Text>
         </View>
         <View>
@@ -175,21 +212,44 @@ export default function AddScreen() {
               value={descricao}
             />
           </View>
-          <View style={{ width: "100%", alignItems: "center", marginTop: 200 }}>
+          <View
+            style={{
+              width: "80%",
+              alignItems: "center",
+              marginLeft: 20,
+              marginTop: 40,
+              flexDirection: "row",
+            }}
+          >
             <TouchableOpacity
               style={{
                 height: 50,
-                width: "90%",
+                width: "80%",
+                margin: 10,
                 backgroundColor: "#4CAF50",
                 borderRadius: 10,
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              onPress={addDataToFirebase}
+              onPress={editarDados}
             >
               <Text style={{ color: "#fff", fontSize: 15, fontWeight: "bold" }}>
                 Concluir
               </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                height: 50,
+                width: "20%",
+                marginRight: 5,
+                backgroundColor: "#F93D47",
+                borderRadius: 10,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={deletarDados}
+            >
+              <Trash size={32} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -204,9 +264,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#0D0F17",
     alignItems: "center",
   },
-  addView: {
+  editView: {
     width: "90%",
-    height: "90%",
+    height: "80%",
     backgroundColor: "#151B21",
     borderRadius: 10,
   },

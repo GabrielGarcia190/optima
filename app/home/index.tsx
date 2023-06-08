@@ -6,17 +6,19 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Button,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "../../components/Header";
 import { AppButton } from "../../components/AppButton";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   CalendarCheck,
   CalendarPlus,
   FlagCheckered,
   List,
+  PencilSimple,
   Plus,
   Scroll,
   User,
@@ -43,10 +45,9 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [dados, setDados] = useState([]);
-  const [ordem_Serviço, setOrdem_Serviço] = useState([]);
   const [selectedItem, setSelectedItem] = useState<number>(-1);
-
-  let monitor = 0;
+  const [selectedItemEdit, setSelectedItemEdit] = useState<number>();
+  const listaIds: Array<string> = [];
 
   const consultarDadosFirestore = async () => {
     setLoading(true);
@@ -54,11 +55,16 @@ export default function Home() {
 
     try {
       const listaDados: any = [];
+      
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((doc) => {
-        listaDados.push(doc.data());
+        doc.data();
+        
+        listaDados.push(`${doc.id}`,doc.data());
+        listaIds.push(doc.id);
       });
       setDados(listaDados);
+      console.log(listaIds)
       setLoading(false);
     } catch (error) {
       alert("Erro ao consultar dados");
@@ -68,7 +74,6 @@ export default function Home() {
   };
 
   function gotoAddScreen() {
-    monitor = 1;
     router.push("screens");
   }
 
@@ -80,10 +85,11 @@ export default function Home() {
 
   function handleItemClick(index: number) {
     setSelectedItem(index);
-    console.log(index);
-    console.log(selectedItem);
   }
 
+  function Concluir(dados: any){
+    console.log(dados);
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Header goBack={false} />
@@ -103,177 +109,181 @@ export default function Home() {
                     onPress={() => handleItemClick(index)}
                   >
                     {selectedItem === index ? (
-                      <><ListItem.Content>
-                      <View style={{ flexDirection: "row" }}>
-                        <View
-                          style={{
-                            width: "50%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <FlagCheckered size={32} color="#F93D47" />
-                          <Text
+                      <>
+                        <ListItem.Content>
+                          <View style={{ flexDirection: "row" }}>
+                            <View
+                              style={{
+                                width: "50%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <User size={32} color="#F93D47" />
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: 15,
+                                  marginLeft: 5,
+                                }}
+                              >
+                                Cliente:
+                              </Text>
+                            </View>
+                            <View
+                              style={{ width: "50%", alignItems: "flex-end" }}
+                            >
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontSize: 15,
+                                  marginRight: 10,
+                                }}
+                              >
+                                {dados["cliente"]}
+                              </Text>
+                            </View>
+                          </View>
+                        </ListItem.Content>
+                        <ListItem.Content>
+                          <View style={{ flexDirection: "row" }}>
+                            <View
+                              style={{
+                                width: "50%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CalendarPlus size={32} color="#F93D47" />
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: 15,
+                                  marginLeft: 5,
+                                }}
+                              >
+                                Data de criação:
+                              </Text>
+                            </View>
+                            <View
+                              style={{ width: "50%", alignItems: "flex-end" }}
+                            >
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontSize: 15,
+                                  marginRight: 10,
+                                }}
+                              >
+                                {dados["createdAt"]}
+                              </Text>
+                            </View>
+                          </View>
+                        </ListItem.Content>
+                        <ListItem.Content>
+                          <View style={{ flexDirection: "row" }}>
+                            <View
+                              style={{
+                                width: "50%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <CalendarCheck size={32} color="#F93D47" />
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: 15,
+                                  marginLeft: 5,
+                                }}
+                              >
+                                Entrega:
+                              </Text>
+                            </View>
+                            <View
+                              style={{ width: "50%", alignItems: "flex-end" }}
+                            >
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontSize: 15,
+                                  marginRight: 10,
+                                }}
+                              >
+                                {dados["deliveryDate"]}
+                              </Text>
+                            </View>
+                          </View>
+                        </ListItem.Content>
+                        <ListItem.Content>
+                          <View
                             style={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 15,
-                              marginLeft: 5,
+                              flexDirection: "row",
+                              alignItems: "flex-start",
+                              alignContent: "flex-start",
                             }}
                           >
-                            Nº da ordem:
-                          </Text>
+                            <View
+                              style={{
+                                width: "50%",
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Scroll size={32} color="#F93D47" />
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: 15,
+                                  marginLeft: 5,
+                                }}
+                              >
+                                Descrição:
+                              </Text>
+                            </View>
+                            <View
+                              style={{ width: "50%", alignItems: "flex-end" }}
+                            >
+                              <Text
+                                style={{
+                                  color: "white",
+                                  fontSize: 15,
+                                  marginRight: 10,
+                                }}
+                              >
+                                {dados["descricao"]}
+                              </Text>
+                            </View>
+                          </View>
+                        </ListItem.Content>
+                        <View style={{ flexDirection: "row", marginTop: 5 }}>
+                          <TouchableOpacity style={styles.buttonConcluir} onPress={() => {
+                            console.log(dados)
+                          }}>
+                            <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                              Concluir
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.buttonEdit}>
+                            <Link
+                              href={{
+                                pathname: "/edit",
+                                // /* 1. Navigate to the details route with query params */
+                                params: {
+                                  id: dados["id"],
+                                  other: listaIds[index]
+                                },
+                              }}
+                            >
+                              <PencilSimple size={30} color="#000" />
+                            </Link>
+                          </TouchableOpacity>
                         </View>
-                        <View style={{ width: "50%", alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 15,
-                              marginRight: 10,
-                            }}
-                          >
-                            {index}
-                          </Text>
-                        </View>
-                      </View>
-                     
-                    </ListItem.Content>
-                    <ListItem.Content>
-                      <View style={{ flexDirection: "row" }}>
-                        <View
-                          style={{
-                            width: "50%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <User size={32} color="#F93D47" />
-                          <Text
-                            style={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 15,
-                              marginLeft: 5,
-                            }}
-                          >
-                            Cliente:
-                          </Text>
-                        </View>
-                        <View style={{ width: "50%", alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 15,
-                              marginRight: 10,
-                            }}
-                          >
-                            {dados["cliente"]}
-                          </Text>
-                        </View>
-                      </View>
-                    </ListItem.Content>
-                    <ListItem.Content>
-                      <View style={{ flexDirection: "row" }}>
-                        <View
-                          style={{
-                            width: "50%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <CalendarPlus  size={32} color="#F93D47" />
-                          <Text
-                            style={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 15,
-                              marginLeft: 5,
-                            }}
-                          >
-                            Data de criação:
-                          </Text>
-                        </View>
-                        <View style={{ width: "50%", alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 15,
-                              marginRight: 10,
-                            }}
-                          >
-                            {dados["createdAt"]}
-                          </Text>
-                        </View>
-                      </View>
-                    </ListItem.Content>
-                    <ListItem.Content>
-                      <View style={{ flexDirection: "row" }}>
-                        <View
-                          style={{
-                            width: "50%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <CalendarCheck  size={32} color="#F93D47" />
-                          <Text
-                            style={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 15,
-                              marginLeft: 5,
-                            }}
-                          >
-                            Entrega:
-                          </Text>
-                        </View>
-                        <View style={{ width: "50%", alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 15,
-                              marginRight: 10,
-                            }}
-                          >
-                            {dados["deliveryDate"]}
-                          </Text>
-                        </View>
-                      </View>
-                    </ListItem.Content>
-                    <ListItem.Content>
-                      <View style={{ flexDirection: "row" , alignItems:'flex-start', alignContent:'flex-start'}}>
-                        <View
-                          style={{
-                            width: "50%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                          }}
-                        >
-                          <Scroll   size={32} color="#F93D47" />
-                          <Text
-                            style={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 15,
-                              marginLeft: 5,
-                            }}
-                          >
-                            Descrição:
-                          </Text>
-                        </View>
-                        <View style={{ width: "50%", alignItems: "flex-end" }}>
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 15,
-                              marginRight: 10,
-                            }}
-                          >
-                            {dados["descricao"]}
-                          </Text>
-                        </View>
-                      </View>
-                    </ListItem.Content></>
+                      </>
                     ) : (
                       <>
                         <ListItem.Content>
@@ -501,5 +511,23 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     padding: 5,
     flexDirection: "column",
+  },
+  buttonConcluir: {
+    flex: 1,
+    backgroundColor: "#4CAF50",
+    marginRight: 10,
+    marginLeft: 5,
+    height: 35,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
+  },
+  buttonEdit: {
+    width: "10%",
+    backgroundColor: "#fff",
+    marginRight: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 5,
   },
 });
