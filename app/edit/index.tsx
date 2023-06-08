@@ -25,10 +25,13 @@ import { Header } from "../../components/Header";
 import {
   CalendarCheck,
   CalendarPlus,
+  Check,
   Scroll,
   Trash,
   User,
+  X,
 } from "phosphor-react-native";
+import Modal from "react-native-modal";
 
 export default function EditScreen() {
   const router = useRouter();
@@ -41,6 +44,9 @@ export default function EditScreen() {
   const id = params.id;
   const ordem: DocumentData[] = [];
   const ordemId: Array<string> = [];
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalDelete, setModalDelete] = useState<boolean>(false);
+  const [modalEdit, setModalEdit] = useState(true);
 
   async function buscarDados() {
     const q = query(
@@ -64,6 +70,14 @@ export default function EditScreen() {
     }
   }
 
+  function deletar(){
+    setModalDelete(true);
+  }
+
+  function closeModalDelete(){
+    setModalDelete(false);
+  }
+
   async function editarDados() {
     const dbRef = doc(database, "ordem_Serviço", String(docId));
     try {
@@ -74,6 +88,8 @@ export default function EditScreen() {
         descricao: descricao,
       });
       buscarDados();
+      setModalVisible(true);
+      console.log(modalVisible);
     } catch (error) {
       alert("Erro ao editar dados:" + error);
     }
@@ -85,20 +101,69 @@ export default function EditScreen() {
       await deleteDoc(dbRef);
       alert("Dados deletados com sucesso!");
       router.push("/home");
-    }
-    catch (error) {
+    } catch (error) {
       alert("Erro ao deletar dados:" + error);
     }
   }
-
 
   useEffect(() => {
     buscarDados();
   }, []);
 
+   function closeModal() {
+    setModalVisible(false);
+    router.push("/home");
+  }
+
+  function continueEdit() {
+    setModalVisible(false);;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Header goBack={true} />
+      <Modal isVisible={modalVisible}>
+          <View style={styles.modal}>
+            <View style={styles.modalContent}>
+              <Text style={styles.editTitle}>Dados Salvos</Text>
+              <View style={styles.viewButtons}>
+                <TouchableOpacity
+                 style={styles.continueButton}
+                  onPress={continueEdit}
+                >
+                  <Text style={{color:'#fff',fontWeight:'bold'}}>EDITAR</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={closeModal}
+                >
+                  <Text style={{color:'#fff',fontWeight:'bold'}}>SAIR</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <Modal isVisible={modalDelete}>
+          <View style={styles.modal}>
+            <View style={styles.modalContent}>
+              <Text style={styles.editTitle}>Confirmar exclusão</Text>
+              <View style={styles.viewButtons}>
+                <TouchableOpacity
+                 style={styles.continueButton}
+                  onPress={deletarDados}
+                >
+                  <Check size={32} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={closeModalDelete}
+                >
+                 <X size={32} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       <View style={styles.editView}>
         <View style={{ width: "100%", alignItems: "center", marginTop: 10 }}>
           <Text
@@ -247,7 +312,7 @@ export default function EditScreen() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              onPress={deletarDados}
+              onPress={deletar}
             >
               <Trash size={32} color="#fff" />
             </TouchableOpacity>
@@ -278,4 +343,46 @@ const styles = StyleSheet.create({
     padding: 10,
     color: "#fff",
   },
+  modal: {
+    flex: 1,
+    backgroundColor: "transparent",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalContent: {
+    height: "40%",
+    borderRadius: 10,
+    width: "90%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#151B21",
+  },
+  editTitle: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  viewButtons: {
+    flexDirection: "row",
+    marginTop: 50,
+    width: "100%",
+    justifyContent: "center",
+  },
+  continueButton: {
+    height: 50,
+    width: "30%",
+    backgroundColor: "#4CAF50",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+  },
+  closeButton: {
+    height: 50,
+    width: "30%",
+    marginLeft: 10,
+    backgroundColor: "red",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+  }
 });

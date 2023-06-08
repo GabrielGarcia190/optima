@@ -295,42 +295,6 @@ export default function Home() {
                                 alignItems: "center",
                               }}
                             >
-                              <FlagCheckered size={32} color="#fff" />
-                              <Text
-                                style={{
-                                  color: "white",
-                                  fontWeight: "bold",
-                                  fontSize: 15,
-                                  marginLeft: 5,
-                                }}
-                              >
-                                Nº da ordem:
-                              </Text>
-                            </View>
-                            <View
-                              style={{ width: "50%", alignItems: "flex-end" }}
-                            >
-                              <Text
-                                style={{
-                                  color: "white",
-                                  fontSize: 15,
-                                  marginRight: 10,
-                                }}
-                              >
-                                {index}
-                              </Text>
-                            </View>
-                          </View>
-                        </ListItem.Content>
-                        <ListItem.Content>
-                          <View style={{ flexDirection: "row" }}>
-                            <View
-                              style={{
-                                width: "50%",
-                                flexDirection: "row",
-                                alignItems: "center",
-                              }}
-                            >
                               <User size={32} color="#fff" />
                               <Text
                                 style={{
